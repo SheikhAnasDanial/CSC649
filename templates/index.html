@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Recommendation</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f8f8; /* Light gray background */
+            color: #333333; /* Dark gray text */
+        }
+
+        h1, h2 {
+            font-family: 'Helvetica', sans-serif;
+            font-weight: bold;
+            color: #0092FF; /* Light blue color */
+        }
+
+        .form-container {
+            padding: 30px;
+            margin-top: 50px;
+            border-radius: 15px;
+            background-color: #fff;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .recipe-card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-title {
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #0092FF; /* Light blue title */
+        }
+
+        .btn-primary {
+            background-color: #0092FF; /* Light blue */
+            border: none;
+            padding: 12px 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary:hover {
+            background-color: #0078e6; /* Darker blue for hover effect */
+        }
+
+        .modal-content {
+            background-color: #fff;
+            color: #333;
+        }
+
+        .modal-header {
+            border-bottom: 2px solid #0092FF; /* Light blue border */
+        }
+
+        .modal-footer {
+            border-top: 2px solid #0092FF; /* Light blue border */
+        }
+
+        .modal-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 1.4rem;
+            color: #0092FF;
+        }
+
+        /* Minimalist list styling */
+        ul {
+            list-style-type: none; /* Remove default bullet points */
+            padding-left: 20px; /* Add some left padding for alignment */
+        }
+
+        ul li::before {
+            content: '\2022'; /* Unicode for the bullet (a dot) */
+            color: #0092FF; /* Color of the bullet (light blue) */
+            font-size: 1.5rem; /* Adjust bullet size */
+            padding-right: 10px; /* Space between bullet and text */
+            font-weight: bold; /* Bold bullet */
+        }
+
+        .form-group label {
+            color: #333333; /* Dark gray label */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5 text-center">Recipe Recommendation System</h1>
+        <div class="form-container bg-light">
+            <form method="post">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label for="ingredients">Ingredients</label>
+                            <textarea class="form-control" id="ingredients" name="ingredients" rows="5" required></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="minutes">Minutes</label>
+                            <input type="number" class="form-control" id="minutes" name="minutes" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block mt-4">Get Recommendations</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {% if recommendations %}
+        <div class="mt-5">
+            <h2 style="font-weight: bold; color: #0092FF;">Recommended Recipes:</h2>
+            <div class="row">
+                {% for recipe in recommendations %}
+                <div class="col-md-4">
+                    <div class="card recipe-card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ recipe['name'] }}</h5>
+                            <p><strong>Ingredients:</strong></p>
+                            <ul>
+                                {% for ingredient in recipe['ingredients'].split(', ') %}
+                                <li>{{ ingredient }}</li>
+                                {% endfor %}
+                            </ul>
+                            <p><strong>Minutes:</strong> {{ recipe['minutes'] }}</p>
+                            <p><strong>Similarity Score:</strong> {{ recipe['similarity_score'] | round(2) }}</p>
+                            <button type="button" class="btn btn-primary btn-block" data-toggle="modal" data-target="#recipeModal{{ loop.index }}">
+                                Show Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal -->
+                <div class="modal fade" id="recipeModal{{ loop.index }}" tabindex="-1" role="dialog" aria-labelledby="recipeModalLabel{{ loop.index }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="recipeModalLabel{{ loop.index }}">{{ recipe['name'] }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>Ingredients:</strong></p>
+                                <ul>
+                                    {% for ingredient in recipe['ingredients'].split(', ') %}
+                                    <li>{{ ingredient }}</li>
+                                    {% endfor %}
+                                </ul>
+                                <p><strong>Minutes:</strong> {{ recipe['minutes'] }}</p>
+                                <p><strong>Similarity Score:</strong> {{ recipe['similarity_score'] | round(2) }}</p>
+                                <p><strong>Description:</strong> {{ recipe.get('description', 'No description available') }}</p>
+                                <p><strong>Steps:</strong></p>
+                                <ul>
+                                    {% for step in recipe.get('steps', '').split('. ') %}
+                                    <li>{{ step }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</body>
+</html>
